@@ -7,6 +7,8 @@
 | Nabilah Bunga Sulistia | 5025241073 |
 | Callista Fidelya Roba Gultom | 5025241086 |
 
+<img width="968" height="1220" alt="image" src="https://github.com/user-attachments/assets/4d4076c5-accf-414f-9021-76d4d8430202" />
+
 ## Cara Menjalankan
 Tanpa build/dependency. Buka `index.html` di browser yang mendukung WebGL2 (Chrome/Edge/Firefox terbaru), atau jalankan server lokal: `python -m http.server 8000` lalu buka `http://localhost:8000`.
 
