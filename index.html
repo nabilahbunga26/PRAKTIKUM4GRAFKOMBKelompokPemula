@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Praktikum 4 — Rotating 3D Cube Camera Playground | Kelompok Pemula</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Modul Praktikum Grafika Komputer — Pertemuan 4</h1>
+  <p>Rotating 3D Cube Camera Playground · Camera, Projection &amp; 3D dengan WebGL2 · Kelompok Pemula</p>
+</div>
+
+<div class="wrap">
+
+  <section class="block yellow">
+    <span class="tag">Kelompok Pemula</span>
+    <h2>Anggota Kelompok</h2>
+    <div class="team-grid">
+      <div class="member"><span class="nm">1. Nabilah Bunga Sulistia</span><span class="nrp">NRP : 5025241073</span></div>
+      <div class="member"><span class="nm">2. Callista Fidelya Roba Gultom</span><span class="nrp">NRP : 5025241086</span></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Informasi Mata Kuliah</h2>
+    <table class="spec">
+      <tr><th>Mata Kuliah</th><td>EF234504 — Grafika Komputer</td></tr>
+      <tr><th>Pertemuan</th><td>4</td></tr>
+      <tr><th>Topik</th><td>Camera, Projection &amp; 3D dengan WebGL2</td></tr>
+      <tr><th>Dosen Pengampu</th><td>Dr. Darlis Herumurti</td></tr>
+      <tr><th>Departemen</th><td>Teknik Informatika</td></tr>
+      <tr><th>Institusi</th><td>Institut Teknologi Sepuluh Nopember (ITS)</td></tr>
+      <tr><th>Renderer</th><td>WebGL2 (GLSL ES 3.00)</td></tr>
+    </table>
+  </section>
+
+  <section class="block cyan">
+    <h2>1. Deskripsi Praktikum</h2>
+    <p>Praktikum ini membuat aplikasi WebGL2 berupa <strong>cube 3D yang berputar</strong> dan sebuah kamera yang bisa dieksplorasi: posisi kamera, proyeksi perspective/orthographic, FOV, near/far clipping plane, dan depth test. Semua matriks (Model, View, Projection) dihitung sendiri di <code class="pill">math3d.js</code>.</p>
+    <h3 style="margin-top:16px;">Alur Transformasi</h3>
+    <div class="flow">
+      <div class="step">Vertex (Local)</div><div class="arrow">→</div>
+      <div class="step">Model Matrix</div><div class="arrow">→</div>
+      <div class="step">View Matrix</div><div class="arrow">→</div>
+      <div class="step">Projection Matrix</div><div class="arrow">→</div>
+      <div class="step">Clip → NDC</div><div class="arrow">→</div>
+      <div class="step">Viewport</div>
+    </div>
+    <p><code class="pill">gl_Position = uProjection × uView × uModel × vec4(aPosition, 1.0)</code></p>
+  </section>
+
+  <section class="block pink">
+    <span class="tag">Live Demo</span>
+    <h2>Camera Playground</h2>
+    <p>Klik halaman lalu gunakan keyboard, atau pakai tombol di bawah canvas. Canvas dapat diubah ukurannya dengan menyeret pojok kanan-bawah kotak hitam, mengubah ukuran jendela, atau tombol <em>Rasio Canvas</em>.</p>
+    <div class="stage resizable"><canvas id="glCanvas" width="800" height="450" tabindex="0"></canvas></div>
+    <div id="glError"></div>
+
+    <div class="hud">
+      <span id="hudCam"></span><span id="hudTarget"></span><span id="hudProj"></span><span id="hudFov"></span>
+      <span id="hudNF"></span><span id="hudDepth"></span><span id="hudAspect"></span><span id="hudMode"></span><span id="hudFps"></span>
+    </div>
+
+    <div class="ctrl-group"><span class="lbl">Dasar</span>
+      <button class="ctrl " id="btnProj">Ganti Proyeksi (P)</button><button class="ctrl info" id="btnFovDown">FOV − ( [ )</button><button class="ctrl info" id="btnFovUp">FOV + ( ] )</button>
+      <button class="ctrl " id="btnNF">Near/Far (N)</button><button class="ctrl " id="btnDepth">Depth Test (D)</button><button class="ctrl danger" id="btnReset">Reset (R)</button>
+    </div>
+    <div class="ctrl-group"><span class="lbl">Challenge</span>
+      <button class="ctrl " id="btnFov35">FOV 35° (1)</button><button class="ctrl " id="btnFov60">FOV 60° (2)</button><button class="ctrl " id="btnFov90">FOV 90° (3)</button>
+      <button class="ctrl " id="btnOrbit">Orbit (O)</button><button class="ctrl " id="btnCubes">3 Cube (T)</button><button class="ctrl " id="btnSplit">Split View (V)</button>
+    </div>
+    <div class="ctrl-group"><span class="lbl">Lainnya</span>
+      <button class="ctrl " id="btnGrid">Grid (G)</button><button class="ctrl " id="btnPause">Pause Rotasi (Space)</button><button class="ctrl " id="btnRatio">Rasio Canvas</button>
+    </div>
+
+    <div class="shortcuts">
+      <div class="shortcut-row"><span class="keycap">←</span><span class="keycap">→</span> kamera X · <span class="keycap">↑</span><span class="keycap">↓</span> kamera Y</div>
+      <div class="shortcut-row"><span class="keycap">W</span><span class="keycap">S</span> kamera Z (maju / mundur)</div>
+      <div class="shortcut-row"><span class="keycap">P</span> proyeksi · <span class="keycap">[</span><span class="keycap">]</span> FOV</div>
+      <div class="shortcut-row"><span class="keycap">N</span> preset near/far · <span class="keycap">D</span> depth test · <span class="keycap">R</span> reset</div>
+      <div class="shortcut-row"><span class="keycap">1</span><span class="keycap">2</span><span class="keycap">3</span> FOV 35° / 60° / 90°</div>
+      <div class="shortcut-row"><span class="keycap">O</span> orbit · <span class="keycap">Q</span><span class="keycap">E</span> orbit manual · <span class="keycap">T</span> 3 cube · <span class="keycap">V</span> split</div>
+    </div>
+  </section>
+
+  <section class="block yellow">
+    <span class="tag">Bagian C</span>
+    <h2>Challenge Praktikum</h2>
+    <p>Dikerjakan 4 challenge (minimum 2), semuanya dapat dicoba langsung pada canvas di atas.</p>
+    <div class="challenge-grid">
+      <div class="challenge-card">
+        <div class="challenge-card-head"><h3>Challenge 1: Orbit Camera</h3><span class="status-badge">Selesai</span></div>
+        <span class="mini-hint">Tekan O (otomatis) atau Q / E (manual)</span>
+        <p class="mini-explain">Kamera berputar mengelilingi target pada sumbu Y: vektor <code class="pill">(kamera − target)</code> pada bidang XZ dirotasi tiap frame, lalu <code class="pill">lookAt()</code> tetap menghadap target.</p>
+      </div>
+      <div class="challenge-card">
+        <div class="challenge-card-head"><h3>Challenge 2: Preset FOV 35° / 60° / 90°</h3><span class="status-badge">Selesai</span></div>
+        <span class="mini-hint">Tekan 1 / 2 / 3 atau tombol FOV</span>
+        <p class="mini-explain">Tiga preset langsung mengisi FOV. FOV kecil = efek zoom (sempit), FOV besar = wide-angle (distorsi perspektif kuat). Pada mode orthographic, FOV dipakai menentukan ukuran frustum.</p>
+      </div>
+      <div class="challenge-card">
+        <div class="challenge-card-head"><h3>Challenge 3: Tiga Cube pada Depth Berbeda</h3><span class="status-badge">Selesai</span></div>
+        <span class="mini-hint">Tekan T, lalu matikan Depth Test (D)</span>
+        <p class="mini-explain">Tiga cube pada z = +2.5, 0, −2.5 saling tumpang tindih di layar. Dengan Depth Test ON urutan tampil benar; dengan OFF sisi digambar sesuai urutan gambar sehingga cube jauh bisa menimpa cube dekat.</p>
+      </div>
+      <div class="challenge-card">
+        <div class="challenge-card-head"><h3>Challenge 4: Split View Dua Proyeksi</h3><span class="status-badge">Selesai</span></div>
+        <span class="mini-hint">Tekan V (P menukar sisi kiri/kanan)</span>
+        <p class="mini-explain">Canvas dibagi dua viewport: kiri perspective, kanan orthographic, masing-masing dengan aspect ratio setengah lebar canvas. Kamera, near/far, dan FOV sama sehingga perbedaan proyeksi mudah dibandingkan.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Preset Near / Far</h2>
+    <table class="spec">
+      <tr><th>Lebar</th><td>near 0.1 · far 100 (default)</td></tr>
+      <tr><th>Normal</th><td>near 1 · far 12</td></tr>
+      <tr><th>Sempit (clipping)</th><td>near 5.5 · far 7 — bagian cube di luar rentang ini terpotong</td></tr>
+    </table>
+  </section>
+
+  <section class="block">
+    <h2>Checklist Pengujian</h2>
+    <ul class="checklist">
+      <li>Cube 36 vertex, warna berbeda per sisi, berputar otomatis (Model Matrix 4×4).</li>
+      <li>Kamera (position, target, up) dengan View Matrix look-at; input state-based.</li>
+      <li>Perspective &amp; orthographic, aspect ratio benar saat canvas di-resize.</li>
+      <li>FOV, preset near/far, Depth Test ON/OFF; depth buffer di-clear tiap frame.</li>
+      <li>HUD sesuai state aplikasi dan tombol Reset berfungsi.</li>
+      <li>Minimal 2 challenge (dikerjakan 4).</li>
+      <li>Tidak ada error merah pada Console pada penggunaan normal.</li>
+    </ul>
+  </section>
+
+</div>
+
+<footer>
+  Kelompok Pemula — Praktikum 4 Grafika Komputer
+  <span class="small">Nabilah Bunga Sulistia (5025241073) · Callista Fidelya Roba Gultom (5025241086)</span>
+</footer>
+
+<script src="math3d.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
